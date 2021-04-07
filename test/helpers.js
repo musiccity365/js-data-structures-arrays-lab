@@ -1,21 +1,19 @@
-const chai = require('chai')
-const sinon = require('sinon')
-global.expect = chai.expect
-const fs = require('file-system')
-const jsdom = require('mocha-jsdom')
-const path = require('path')
-const babel = require('babel-core');
-
-const html = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf-8')
-
-const babelResult = babel.transformFileSync(
-  path.resolve(__dirname, '..', 'index.js'), {
-    presets: ['env']
+require('babel-register')();
+var exposedProperties = ['window', 'navigator', 'document'];
+var jsdom = require('jsdom');
+const {JSDOM} = jsdom;  
+const {document} = (new JSDOM('<!doctype html><html><body></body></html>',{
+  url:"http://localhost" 
+})).window;  
+global.document = document;  
+global.window = document.defaultView;
+// global.document = jsdom('');
+// global.window = document.defaultView;
+Object.keys(document.defaultView).forEach((property) => {
+  if (typeof global[property] === 'undefined') {
+    global[property] = document.defaultView[property];
   }
-);
-
-const src = babelResult.code
-
-jsdom({
-  html, src
 });
+global.navigator = {
+  userAgent: 'node.js'
+};
